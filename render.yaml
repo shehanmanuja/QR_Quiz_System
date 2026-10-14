@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: eximius-qr-quiz
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class gthread --workers 1 --threads 100 app:app
+    healthCheckPath: /api/info
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.12.6
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATABASE_PATH
+        value: /var/data/database.json
+    disk:
+      name: qr-quiz-data
+      mountPath: /var/data
+      sizeGB: 1
