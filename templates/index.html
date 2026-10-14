@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exhibition Quiz Challenge</title>
+  <link rel="stylesheet" href="/static/css/style.css?v=4">
+
+  <!-- Frontend Offline Libraries -->
+  <script src="/static/js/lib/socket.io.min.js"></script>
+  <script src="/static/js/lib/qrcode.min.js"></script>
+  <script src="/static/js/lib/canvas-confetti.min.js"></script>
+</head>
+
+<body style="background-color: var(--bg-primary);">
+
+  <div class="mobile-container">
+
+    <!-- Header Banner -->
+    <div class="visitor-header">
+      <div class="visitor-logo-container">
+        <img src="/static/images/logo.svg" alt="Exhibition Logo" class="visitor-logo-img">
+      </div>
+      <h1 class="visitor-title" id="header-title">TECHNO 2026 Quiz Challenge</h1>
+      <p class="visitor-subtitle">Register, visit our Main Stall, and test your knowledge!</p>
+    </div>
+
+    <!-- ===================================================================
+         STEP 1: INDIVIDUAL VISITOR REGISTRATION FORM
+         =================================================================== -->
+    <div id="step-register" class="card fade-in">
+      <div class="card-header">
+        <h2 class="card-title">📝 Visitor Registration</h2>
+      </div>
+
+      <form id="form-register">
+        <div class="form-group">
+          <label class="form-label" for="reg-name">Full Name *</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="e.g. Kasun Perera" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-age">Age Range *</label>
+          <select id="reg-age" class="form-control" required>
+            <option value="" disabled selected>Select Age Range</option>
+            <option value="Under 18">Under 18</option>
+            <option value="18 - 24">18 - 24</option>
+            <option value="25 - 34">25 - 34</option>
+            <option value="35 - 49">35 - 49</option>
+            <option value="50+">50 and above</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-phone">Phone / WhatsApp Number *</label>
+          <input type="tel" id="reg-phone" class="form-control" placeholder="e.g. 0771234567" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Email Address (Optional)</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="kasun@example.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-company">Company / Institute (Optional)</label>
+          <input type="text" id="reg-company" class="form-control" placeholder="e.g. ABC Institute">
+        </div>
+
+        <div class="form-group"
+          style="background: var(--color-accent-light); padding: 14px 16px; border-radius: var(--radius-md); border: 1.5px solid rgba(37, 99, 235, 0.2); margin-top: 14px; margin-bottom: 20px;">
+          <label
+            style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin: 0;">
+            <span
+              style="font-weight: 700; color: var(--bg-dark-blue); font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              <span>☀️</span> Interested in Solar Power Solutions?
+            </span>
+            <input type="checkbox" id="reg-solar" checked
+              style="width: 22px; height: 22px; accent-color: var(--color-primary); cursor: pointer;">
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: 10px;">
+          Register &amp; Get Visitor Pass
+        </button>
+      </form>
+    </div>
+
+
+    <!-- ===================================================================
+         STEP 2: WAITING FOR MAIN HALL VERIFICATION & TEAM ASSIGNMENT
+         =================================================================== -->
+    <div id="step-pending" class="card fade-in" style="display: none;">
+      <div class="waiting-box">
+        <span style="font-size: 36px;">⏳</span>
+        <h2 style="font-size: 20px; font-weight: 800; color: var(--bg-dark-blue); margin-top: 10px;">
+          Registration Successful!
+        </h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+          Visitor ID: <strong id="pending-id-display"
+            style="color: var(--color-primary); font-size: 16px;">EPE001</strong>
+        </p>
+
+        <div class="waiting-qr-container" id="visitor-qr-code"></div>
+
+        <div class="stall-visit-banner" style="flex-direction: column; gap: 8px; text-align: center; padding: 16px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span>📍</span>
+            <span>Please visit <strong>Main Hall - Main Stall</strong> to join a 5-Player Team!</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px;">
+            <span class="btn btn-primary btn-sm"
+              style="padding: 6px 18px; font-size: 14px; cursor: default; border-radius: var(--radius-full);">Stall
+              B-08</span>
+            <span class="btn btn-primary btn-sm"
+              style="padding: 6px 18px; font-size: 14px; cursor: default; border-radius: var(--radius-full);">Stall
+              B-09</span>
+          </div>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+          Show this QR code or Visitor ID to our stall staff in the Main Hall. The admin will group you into a 5-player
+          team to start your 5-Minute Team Quiz Challenge!
+        </p>
+
+        <!-- Exhibition Hall Stall Map Box -->
+        <div
+          style="margin: 16px 0; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: #ffffff; text-align: left;">
+          <div
+            style="padding: 10px 14px; background: var(--bg-dark-blue); color: #ffffff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">
+            <span>🗺️ Main Hall Stall Map</span>
+            <span style="font-size: 11px; opacity: 0.8;">Hall B - Stall B-08 | B-09</span>
+          </div>
+          <div style="position: relative; cursor: pointer;" id="btn-open-map-modal" onclick="window.openMapModalClick()">
+            <img src="/static/images/exhibition_stall_map.jpg" alt="Main Stall Map"
+              style="width: 100%; height: auto; display: block; max-height: 200px; object-fit: cover;">
+            <div
+              style="position: absolute; bottom: 8px; right: 8px; background: rgba(15, 23, 42, 0.85); color: #ffffff; font-size: 11px; padding: 4px 10px; border-radius: var(--radius-full); font-weight: 700; display: flex; align-items: center; gap: 4px;">
+              <span>🔍 Tap to Expand Map</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--color-accent); margin-top: 12px;">
+          <div class="pulse-dot"></div>
+          <span id="pending-status-text">Waiting for Main Hall check-in &amp; team formation...</span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===================================================================
+         STEP 2.5: CHECKED-IN! WAITING FOR 5-PLAYER GROUP ASSIGNMENT
+         =================================================================== -->
+    <div id="step-verified-waiting" class="card fade-in" style="display: none; padding: 24px 18px; text-align: center;">
+
+      <!-- Top Verification Badge -->
+      <div class="verified-badge-pill">
+        <span class="verified-badge-icon">✓</span>
+        <span>Check-in Confirmed!</span>
+      </div>
+
+      <div class="verified-hero-box">
+        <div class="radar-pulse-ring">
+          <span style="font-size: 38px; line-height: 1;">👥</span>
+        </div>
+
+        <h2 style="font-size: 22px; font-weight: 800; color: var(--bg-dark-blue); margin-top: 6px; line-height: 1.3;">
+          You are Checked In!
+        </h2>
+        <p style="font-size: 14px; font-weight: 700; color: #15803d; margin-top: 2px;">
+          Check-in Confirmed at Main Stall!
+        </p>
+      </div>
+
+      <!-- Real-Time Group Announcement Card -->
+      <div id="visitor-group-card" style="display: none; background: linear-gradient(135deg, #1e3a8a, #0f172a); color: #ffffff; padding: 14px 16px; border-radius: var(--radius-md); margin-bottom: 16px; border: 1.5px solid var(--color-accent); box-shadow: var(--shadow-md); text-align: left;">
+        <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: #93c5fd; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between;">
+          <span id="visitor-group-tag">⚡ LIVE GROUP FORMATION</span>
+          <span style="display: flex; align-items: center; gap: 4px; color: #34d399; font-weight: 800; font-size: 11px;">
+            <span class="pulse-dot" style="width: 8px; height: 8px; background-color: #34d399;"></span> ACTIVE LOBBY
+          </span>
+        </div>
+        <div style="font-size: 18px; font-weight: 800; margin-top: 4px; color: #ffffff;" id="visitor-group-name">Group: Team 01</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;" id="visitor-group-status-msg">
+          Stall Admin created the team! Gathering players...
+        </div>
+      </div>
+
+      <!-- Real-Time Player Added Alert Toast -->
+      <div id="visitor-player-alert" style="display: none; background: #ecfdf5; border: 1.5px solid #10b981; color: #065f46; padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 700; margin-bottom: 14px; text-align: center;">
+        <span style="font-size: 16px; margin-right: 6px;">👤</span>
+        <span id="visitor-player-alert-text">Player added to group!</span>
+      </div>
+
+      <!-- High-impact English Waiting Callout Card -->
+      <div class="team-waiting-notice-card" id="team-waiting-notice-card">
+        <div style="font-size: 16px; font-weight: 800; color: #1e3a8a; display: flex; align-items: center; justify-content: center; gap: 8px;" id="waiting-notice-title">
+          <span>⏳</span> Waiting for Team Assignment
+        </div>
+        <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-top: 6px; line-height: 1.5;" id="waiting-notice-sub">
+          Waiting for Admin to assign you to a 5-Player Team
+        </div>
+        <div style="font-size: 12px; color: #334155; margin-top: 8px; line-height: 1.5;" id="waiting-notice-desc">
+          Once stall staff assigns you to a <strong>5-Player Team</strong>, your <strong>5-Minute Live Quiz Challenge</strong> will launch directly on this screen!
+        </div>
+      </div>
+
+      <!-- Interactive Ready Status Action Card -->
+      <div id="visitor-ready-card" style="margin: 16px 0; padding: 16px; background: linear-gradient(135deg, #f0fdf4, #e0f2fe); border: 2px solid #22c55e; border-radius: var(--radius-md); text-align: center; box-shadow: 0 4px 14px rgba(34, 197, 94, 0.15);">
+        <div style="font-size: 12px; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span class="pulse-dot" style="background-color: #22c55e;"></span> READY STATUS CHECK
+        </div>
+        <div style="font-size: 14px; font-weight: 700; color: var(--bg-dark-blue); margin-bottom: 12px;" id="visitor-ready-prompt">
+          Tap the button below to confirm you are ready to play!
+        </div>
+        
+        <button type="button" id="btn-visitor-ready" class="btn btn-success btn-lg btn-block" style="font-size: 16px; font-weight: 800; padding: 14px 20px; border-radius: var(--radius-full); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); cursor: pointer; transition: all 0.25s ease;" onclick="window.visitorReadyClick()">
+          👍 I'M READY TO PLAY!
+        </button>
+
+        <div id="visitor-ready-confirmed-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 800; color: #15803d; background: #ffffff; padding: 12px 16px; border-radius: var(--radius-full); border: 2px solid #22c55e; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);">
+          <span style="font-size: 18px;">✅</span>
+          <span>Ready Confirmed! Standing by for Quiz Launch...</span>
+        </div>
+      </div>
+
+      <!-- Live 5-Player Team Slot Visualizer -->
+      <div class="team-slots-visualizer">
+        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+          <span id="slots-header-title">Team Formation Status (0 / 5 Added)</span>
+          <span style="display: flex; align-items: center; gap: 4px; color: #10b981; font-weight: 800; font-size: 11px;">
+            <span class="pulse-dot" style="width: 8px; height: 8px;"></span> LIVE
+          </span>
+        </div>
+
+        <div class="slots-grid" id="visitor-slots-grid">
+          <!-- Dynamically populated slots -->
+          <div class="slot-item slot-waiting"><div class="slot-avatar">⏳</div><div class="slot-name">Player 1</div><div class="slot-tag">Waiting</div></div>
+          <div class="slot-item slot-waiting"><div class="slot-avatar">⏳</div><div class="slot-name">Player 2</div><div class="slot-tag">Waiting</div></div>
+          <div class="slot-item slot-waiting"><div class="slot-avatar">⏳</div><div class="slot-name">Player 3</div><div class="slot-tag">Waiting</div></div>
+          <div class="slot-item slot-waiting"><div class="slot-avatar">⏳</div><div class="slot-name">Player 4</div><div class="slot-tag">Waiting</div></div>
+          <div class="slot-item slot-waiting"><div class="slot-avatar">⏳</div><div class="slot-name">Player 5</div><div class="slot-tag">Waiting</div></div>
+        </div>
+
+        <div class="slots-footnote" id="slots-footnote-text">
+          <span>Stall staff will form 5-player teams to launch the quiz round</span>
+        </div>
+      </div>
+
+      <!-- Visitor Details Pill -->
+      <div class="visitor-verified-meta">
+        <div class="meta-row">
+          <span class="meta-label">Visitor ID:</span>
+          <strong class="meta-value" id="verified-id-display" style="color: var(--color-primary); font-size: 14px;">-</strong>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Visitor Name:</span>
+          <strong class="meta-value" id="verified-name-display">-</strong>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Stall Location:</span>
+          <strong class="meta-value">Main Hall (Stall B-08 / B-09)</strong>
+        </div>
+      </div>
+
+      <!-- Optional Collapsible QR Code (if staff wants to re-check) -->
+      <div style="margin-top: 14px;">
+        <button type="button" id="btn-toggle-verified-qr" class="btn btn-outline btn-sm" style="font-size: 12px; padding: 6px 14px; border-radius: var(--radius-full);" onclick="window.toggleVerifiedQrClick()">
+          📱 View My QR Code
+        </button>
+        <div id="verified-qr-collapse" style="display: none; margin-top: 12px; padding: 14px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div id="verified-qr-code" style="display: flex; justify-content: center; margin: 8px 0;"></div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Show this if stall staff needs to re-scan your pass.</p>
+        </div>
+      </div>
+
+      <!-- Live Waiting Footer Indicator -->
+      <div class="live-wait-footer">
+        <div class="pulse-dot"></div>
+        <span>Do not close this page. Screen will update automatically!</span>
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================================
+         STEP 3: LIVE 5-MINUTE TEAM QUIZ CHALLENGE
+         =================================================================== -->
+    <div id="step-quiz" class="card fade-in" style="display: none;">
+
+      <!-- Quiz Header Bar (Sticky at top) -->
+      <div class="quiz-header-bar"
+        style="position: sticky; top: 12px; z-index: 100; background: #ffffff; padding: 12px 16px; border-radius: var(--radius-md); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1); margin-bottom: 16px;">
+        <div>
+          <span style="font-weight: 800; color: var(--color-primary); font-size: 15px; display: block;"
+            id="quiz-team-name-display">
+            Team 01
+          </span>
+          <span style="font-weight: 700; color: var(--text-muted); font-size: 12px;" id="question-progress-text">
+            0 of 10 Answered
+          </span>
+        </div>
+        <div class="timer-pill" id="quiz-timer-pill">
+          <span>⏱️</span>
+          <span id="quiz-timer">02:00</span>
+        </div>
+      </div>
+
+      <!-- Progress Line -->
+      <div class="quiz-progress-bg" style="margin-bottom: 20px;">
+        <div class="quiz-progress-bar" id="quiz-progress-fill" style="width: 0%;"></div>
+      </div>
+
+      <!-- All Questions Container -->
+      <div id="all-questions-container">
+        <!-- Dynamically injected questions list -->
+      </div>
+
+      <!-- Submit Quiz Button -->
+      <button id="btn-submit-quiz" class="btn btn-primary btn-lg btn-block"
+        style="margin-top: 24px; padding: 16px; font-size: 16px; font-weight: 800;" onclick="window.submitQuizClick()">
+        Submit Team Answers 🏁
+      </button>
+
+    </div>
+
+
+    <!-- ===================================================================
+         STEP 3.5: WAITING FOR OTHER TEAM PLAYERS TO SUBMIT
+         =================================================================== -->
+    <div id="step-waiting-others" class="card fade-in" style="display: none; text-align: center; padding: 28px 18px;">
+      
+      <!-- Top Pill -->
+      <div class="verified-badge-pill" style="margin-bottom: 16px;">
+        <span class="verified-badge-icon">✓</span>
+        <span>Answers Recorded Successfully!</span>
+      </div>
+
+      <div style="font-size: 46px; margin: 4px 0 10px;">⏳</div>
+
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--bg-dark-blue);">
+        Answers Submitted!
+      </h2>
+      <p style="font-size: 14px; font-weight: 700; color: #15803d; margin-top: 4px;">
+        Your answers have been successfully recorded!
+      </p>
+
+      <!-- Waiting Match Completion Notice -->
+      <div class="team-waiting-notice-card" style="margin: 16px 0;">
+        <div style="font-size: 15px; font-weight: 800; color: #1e3a8a; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>🔒</span> Scores Hidden During Match
+        </div>
+        <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-top: 6px; line-height: 1.5;">
+          Waiting for all 5 team players to submit their answers.
+        </div>
+        <div style="font-size: 12px; color: #475569; margin-top: 6px; line-height: 1.4;">
+          Your final score, time, and match ranking will be revealed automatically once all 5 team players complete their questions!
+        </div>
+      </div>
+
+      <!-- Live Team Submission Progress -->
+      <div style="background: var(--color-accent-light); padding: 16px; border-radius: var(--radius-md); border: 1.5px solid rgba(37, 99, 235, 0.3); margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 800; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.5px;">
+          <span>Team Progress</span>
+          <span style="display: flex; align-items: center; gap: 4px; color: #10b981; font-weight: 800;">
+            <span class="pulse-dot" style="width: 8px; height: 8px;"></span> LIVE
+          </span>
+        </div>
+        <div style="font-size: 24px; font-weight: 800; color: var(--bg-dark-blue); margin-top: 6px;" id="waiting-submitted-count">
+          1 / 5 Players Submitted
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+          Waiting for remaining team players to finish their 5-minute round...
+        </div>
+      </div>
+
+      <!-- Live Waiting Footer Indicator -->
+      <div class="live-wait-footer" style="margin-top: 12px;">
+        <div class="pulse-dot"></div>
+        <span>Do not close this page. Winner &amp; Scores unlock automatically!</span>
+      </div>
+    </div>
+
+
+    <!-- ===================================================================
+         STEP 4: QUIZ RESULTS & RANKING (Triggered when ALL 5 players submit)
+         =================================================================== -->
+    <div id="step-results" class="card fade-in" style="display: none; text-align: center;">
+
+      <!-- Dynamic Winner Celebration Card (#1 Winner) -->
+      <div id="winner-celebration-banner" class="winner-banner-card" style="display: none;">
+        <span class="trophy-animated">🏆</span>
+        <h2 style="font-size: 22px; font-weight: 800; margin-top: 4px; color: #ffffff;" id="winner-banner-title">
+          YOU ARE THE WINNER OF THIS ROUND!
+        </h2>
+        <p style="font-size: 13px; margin-top: 4px; font-weight: 700; color: #ffffff;" id="winner-banner-subtitle">
+          Highest Score &amp; Fastest Speed among all 5 players!
+        </p>
+      </div>
+
+      <!-- High-Contrast Runner Up Banner (Ranks #2 - #5) -->
+      <div id="runnerup-banner" style="display: none; background: linear-gradient(135deg, #0f172a, #1e293b); color: #ffffff; padding: 22px 18px; border-radius: var(--radius-md); margin-bottom: 20px; border: 2px solid var(--color-accent); box-shadow: var(--shadow-md);">
+        <span style="font-size: 42px;">👏</span>
+        <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-top: 6px; letter-spacing: 0.5px;" id="runnerup-banner-title">
+          2ND PLACE IN THIS ROUND!
+        </h2>
+        <p style="font-size: 13px; color: #f8fafc; margin-top: 6px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: var(--radius-sm);" id="runnerup-banner-subtitle">
+          Round Winner: Shehan (5/5 Pts in 12s)
+        </p>
+      </div>
+
+      <div id="standard-results-header">
+        <h2 style="font-size: 22px; font-weight: 800; color: var(--bg-dark-blue); margin-top: 8px;">
+          Team Quiz Completed!
+        </h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+          Match: <strong id="result-team-name">Team 01 (5-Player Match)</strong>
+        </p>
+      </div>
+
+      <div id="result-players-display"
+        style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; margin-top: 8px; background: var(--bg-primary); padding: 8px 12px; border-radius: var(--radius-sm); display: inline-block;">
+      </div>
+
+      <div
+        style="background: var(--bg-primary); padding: 20px; border-radius: var(--radius-md); margin-bottom: 24px; border: 1px solid var(--border-color);">
+        <div style="font-size: 13px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">YOUR SCORE</div>
+        <div style="font-size: 38px; font-weight: 800; color: var(--color-primary); line-height: 1.1;"
+          id="result-score">
+          0 / 0
+        </div>
+
+        <div
+          style="display: flex; justify-content: space-around; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">TIME TAKEN</div>
+            <div style="font-size: 18px; font-weight: 800; color: var(--bg-dark-blue);" id="result-time">0.0s</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">MATCH RANK</div>
+            <div style="font-size: 18px; font-weight: 800; color: var(--color-accent);" id="result-rank">#1 of 5</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thank You Message Card for Participants -->
+      <div id="thank-you-card"
+        style="background: linear-gradient(135deg, #1e3a8a, #0f172a); color: #ffffff; padding: 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; text-align: center; border: 1.5px solid var(--color-accent); margin-bottom: 16px;">
+        <span style="font-size: 24px; display: block; margin-bottom: 4px;">🙏</span>
+        <h3 style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Thank You for Participating!</h3>
+        <p style="color: #cbd5e1; font-size: 12px; margin: 0; line-height: 1.4;">
+          Thank you for playing the <strong>TECHNO 2026 Quiz Challenge</strong>! Please visit our <strong>Main Stall B-08 / B-09</strong> to explore rooftop solar solutions &amp; collect your participation gift!
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EXPANDED STALL MAP MODAL -->
+  <div id="modal-map" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 650px; padding: 16px; text-align: center;">
+      <div
+        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+        <h3 style="font-size: 16px; font-weight: 800; color: var(--bg-dark-blue);">📍 Exhibition Floorplan - Main Stall
+          B-08 | B-09</h3>
+        <button id="btn-close-map-modal"
+          style="background: none; border: none; font-size: 20px; cursor: pointer;" onclick="window.closeMapModalClick()">✕</button>
+      </div>
+      <div style="border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color);">
+        <img src="/static/images/exhibition_stall_map.jpg" alt="Exhibition Floor Plan Map"
+          style="width: 100%; height: auto; display: block;">
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+        Main Stall B-08 & B-09 is located at Hall-B main aisle.
+      </p>
+    </div>
+  </div>
+
+  <!-- PRE-QUIZ READY LAUNCH MODAL -->
+  <div id="modal-quiz-ready" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 440px; padding: 26px 20px; text-align: center; border-radius: var(--radius-lg); border: 2.5px solid #10b981; box-shadow: 0 12px 36px rgba(0,0,0,0.3);">
+      <div style="font-size: 52px; margin-bottom: 6px; line-height: 1;">⚡</div>
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--bg-dark-blue); margin-bottom: 6px;">
+        Team Match Starting!
+      </h2>
+      <p style="font-size: 14px; font-weight: 700; color: var(--color-primary); margin-bottom: 4px;" id="modal-ready-team-name">
+        Team 01
+      </p>
+      <p style="font-size: 13px; color: #475569; margin-bottom: 20px; line-height: 1.5;">
+        Stall staff has launched the quiz round! You have <strong>5 minutes</strong> to answer all 10 questions. Are you ready?
+      </p>
+      <button type="button" id="btn-modal-start-quiz" class="btn btn-success btn-lg btn-block" style="font-size: 17px; font-weight: 800; padding: 16px 20px; border-radius: var(--radius-full); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45); cursor: pointer;" onclick="window.confirmReadyAndStartQuiz()">
+        I'M READY - START QUIZ!
+      </button>
+    </div>
+  </div>
+
+  <script src="/static/js/visitor.js?v=12"></script>
+</body>
+
+</html>

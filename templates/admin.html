@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Main Stall Admin & TV Display - Exhibition QR Challenge</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+
+  <!-- Offline JS Libraries -->
+  <script src="/static/js/lib/socket.io.min.js"></script>
+  <script src="/static/js/lib/qrcode.min.js"></script>
+  <script src="/static/js/lib/html5-qrcode.min.js"></script>
+  <script src="/static/js/lib/canvas-confetti.min.js"></script>
+</head>
+
+<body style="background-color: var(--bg-primary);">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">
+        <img src="/static/images/logo.svg" alt="Logo" class="brand-logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="brand-title" id="admin-stall-title">Main Dashboard</div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div class="network-badge">
+          <div class="pulse-dot"></div>
+          <span>Wi-Fi URL: <strong id="admin-server-url">Loading URL...</strong></span>
+        </div>
+
+        <button id="btn-show-entrance-qr" class="btn btn-primary btn-sm" onclick="window.showEntranceQrClick()">
+          Entrance QR Code
+        </button>
+
+        <button id="btn-open-scanner" class="btn btn-accent btn-sm" onclick="window.openScannerClick()">
+          Scan Visitor Badge
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main App Content -->
+  <div class="app-container" style="margin-top: 20px;">
+
+    <!-- Stat Cards Grid -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-registered">0</div>
+          <div class="stat-label">Total QR Scanned</div>
+        </div>
+      </div>
+
+      <div class="stat-card verified">
+        <div class="stat-icon" style="background: var(--color-success-bg); color: var(--color-success);">🏢</div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-verified">0</div>
+          <div class="stat-label">Main Stall Visitors (Verified)</div>
+        </div>
+      </div>
+
+      <div class="stat-card pending">
+        <div class="stat-icon" style="background: var(--color-warning-bg); color: #b45309;">⏳</div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-pending">0</div>
+          <div class="stat-label">Pending Stall Visits</div>
+        </div>
+      </div>
+
+      <div class="stat-card completed">
+        <div class="stat-icon" style="background: var(--color-accent-light); color: var(--color-accent);">🎯</div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-completed">0</div>
+          <div class="stat-label">Quiz Completed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Gatekeeper Verification Bar -->
+    <div class="card"
+      style="background: linear-gradient(135deg, #0f172a, #0f172a); color: #ffffff; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h2 style="font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <span>Main Hall Visitor Check-in Station</span>
+          </h2>
+          <p style="font-size: 13px; color: #94a3b8; margin-top: 2px;">
+            Enter Visitor ID (e.g. EPE001) or Phone number when visitor arrives at Main Hall to check them in.
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; max-width: 460px;">
+          <input type="text" id="quick-verify-id" class="form-control" placeholder="Enter Visitor ID or Phone..."
+            style="border: none; background: #ffffff;">
+          <button id="btn-quick-verify" class="btn btn-success" style="white-space: nowrap; padding: 12px 20px;" onclick="window.performQuickVerify()">
+            Check-in Visitor
+          </button>
+        </div>
+      </div>
+      <div id="verify-alert-msg" style="margin-top: 10px; font-weight: 700; font-size: 14px; display: none;"></div>
+    </div>
+
+    <!-- Admin Team Formation Station -->
+    <div class="card" style="background: #ffffff; border: 2px solid var(--color-accent); margin-bottom: 24px;">
+      <div class="card-header" style="margin-bottom: 14px; padding-bottom: 10px;">
+        <h2 class="card-title" style="font-size: 18px; color: var(--bg-dark-blue);">
+          ⚡ Form 5-Player Team &amp; Start 5-Min Quiz
+        </h2>
+        <span class="badge badge-completed" style="font-size: 11px;">5 Members per Team</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <input type="text" id="admin-team-name-input" class="form-control" placeholder="Team Name (e.g. Team 01)"
+            style="flex: 1; min-width: 180px;">
+
+          <button id="btn-create-group" class="btn btn-primary btn-sm"
+            style="padding: 12px 20px; font-weight: 800; white-space: nowrap; background: #1e3a8a;" onclick="window.createGroupClick()">
+            ➕ Create Group
+          </button>
+
+          <button id="btn-auto-form-team" class="btn btn-accent btn-sm"
+            style="padding: 12px 18px; font-weight: 700; white-space: nowrap;" onclick="window.autoFormTeamClick()">
+            🎲 Auto-Form Team (Next 5 Checked-in)
+          </button>
+
+          <button id="btn-create-team-submit" class="btn btn-success btn-sm"
+            style="padding: 12px 22px; font-weight: 800; white-space: nowrap;" onclick="window.startQuizClick()">
+            Start Quiz &amp; Unlock
+          </button>
+        </div>
+
+        <!-- Active Forming Group Status & Members Container -->
+        <div id="admin-group-status-box"
+          style="background: var(--bg-primary); padding: 14px 18px; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+          <div
+            style="font-size: 13px; font-weight: 700; color: var(--bg-dark-blue); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="admin-group-status-title" style="font-weight: 800; font-size: 14px; color: var(--color-primary);">Group Status: No Group Created Yet</span>
+              <span id="admin-group-badge" class="badge" style="display: none; background: #fef3c7; color: #b45309; font-weight: 800;">🟡 Forming</span>
+              <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">(<span id="selected-team-count">0</span> / 5 Players Added)</span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button id="btn-cancel-group"
+                style="display: none; background: none; border: none; color: var(--color-danger); font-size: 12px; cursor: pointer; font-weight: 700;" onclick="window.cancelGroupClick()">
+                ✕ Cancel Group
+              </button>
+              <button id="btn-clear-selected-members"
+                style="background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; font-weight: 700;" onclick="window.clearPlayersClick()">Clear
+                Players</button>
+            </div>
+          </div>
+          <div id="selected-team-members-chips"
+            style="display: flex; gap: 8px; flex-wrap: wrap; min-height: 36px; align-items: center;">
+            <span style="font-size: 12px; color: var(--text-muted);" id="group-empty-hint">
+              Click <strong>"➕ Create Group"</strong> to start forming a new team, or click <strong>"+ Add to Group"</strong> on any checked-in visitor below.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-leaderboard">🏆 Team Winners Leaderboard</button>
+      <button class="nav-tab" data-tab="tab-visitors">👥 Registered Visitors (<span
+          id="tab-visitor-count">0</span>)</button>
+      <button class="nav-tab" data-tab="tab-questions">❓ Manage Questions</button>
+      <button class="nav-tab" data-tab="tab-settings">⚙️ System Settings</button>
+    </div>
+
+
+    <!-- ===================================================================
+         TAB 1: LIVE LEADERBOARD (TV SCREEN READY)
+         =================================================================== -->
+    <div id="tab-leaderboard" class="tab-content fade-in">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            🏆 Official Team Winners Leaderboard
+          </h2>
+          <div style="font-size: 13px; color: var(--color-accent); font-weight: 700;">
+            🥇 Winner Selection: Highest Score &amp; Fastest Submission Time (Tie-Breaker)
+          </div>
+        </div>
+
+        <div id="leaderboard-container" class="leaderboard-list">
+          <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+            No completed team attempts yet. Live winners will be displayed here!
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===================================================================
+         TAB 2: REGISTERED VISITORS LIST TABLE
+         =================================================================== -->
+    <div id="tab-visitors" class="tab-content fade-in" style="display: none;">
+      <div class="card">
+        <div class="card-header" style="flex-wrap: wrap; gap: 12px;">
+          <h2 class="card-title">👥 All Registered Visitors</h2>
+
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="visitor-search" class="form-control" placeholder="Search name, phone, ID..."
+              style="width: 220px; padding: 8px 14px; font-size: 13px;">
+
+            <select id="visitor-filter-status" class="form-control"
+              style="width: 150px; padding: 8px 14px; font-size: 13px;">
+              <option value="all">All Statuses</option>
+              <option value="pending_visit">Pending Visit</option>
+              <option value="verified">Verified (Checked-in)</option>
+              <option value="in_team">In Team</option>
+              <option value="completed">Completed Quiz</option>
+            </select>
+
+            <button id="btn-export-excel" class="btn btn-success btn-sm"
+              style="white-space: nowrap; padding: 9px 18px; font-weight: 700;" onclick="window.exportVisitorsClick()">
+              📊 Export Visitors &amp; Teams Data
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Visitor ID</th>
+                <th>Visitor Name</th>
+                <th>Age</th>
+                <th>Phone</th>
+                <th>Company / Email</th>
+                <th>Solar Interest</th>
+                <th>Status</th>
+                <th>Assigned Team</th>
+                <th>Registered At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="visitors-table-body">
+              <tr>
+                <td colspan="10" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                  Loading visitors...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===================================================================
+         TAB 3: MANAGE QUESTIONS
+         =================================================================== -->
+    <div id="tab-questions" class="tab-content fade-in" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">❓ Quiz Questions Editor</h2>
+          <button id="btn-add-question" class="btn btn-primary btn-sm">+ Add New Question</button>
+        </div>
+
+        <div id="questions-list-container">
+          <!-- Dynamic Question Cards -->
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===================================================================
+         TAB 4: SETTINGS & RESET
+         =================================================================== -->
+    <div id="tab-settings" class="tab-content fade-in" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">⚙️ System Settings & Control</h2>
+        </div>
+
+        <div style="max-width: 600px;">
+          <form id="form-settings" style="margin-bottom: 30px;">
+            <div class="form-group">
+              <label class="form-label">Exhibition Title</label>
+              <input type="text" id="setting-title" class="form-control" value="TECHNO 2026 Quiz Challenge">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Main Stall Identifier</label>
+              <input type="text" id="setting-stall" class="form-control" value="Main Stall">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+          </form>
+
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 24px 0;">
+
+          <h3 style="font-size: 16px; font-weight: 800; color: var(--color-danger); margin-bottom: 10px;">
+            ⚠️ Reset Exhibition Data
+          </h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Clears all registered visitors and quiz results for a fresh start. Questions will be kept.
+          </p>
+
+          <button id="btn-reset-data" class="btn btn-danger">
+            🗑️ Clear All Visitor Registrations
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ===================================================================
+       MODAL 1: ENTRANCE QR CODE FOR EXHIBITION BOOTH
+       =================================================================== -->
+  <div id="modal-entrance-qr" class="modal-backdrop">
+    <div class="modal-content" style="text-align: center;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--bg-dark-blue); margin-bottom: 6px;">
+        📱 Scan to Join Quiz Challenge
+      </h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Scan this QR code with any smartphone connected to the Exhibition Wi-Fi!
+      </p>
+
+      <div id="entrance-qr-target"
+        style="padding: 16px; background: #ffffff; border-radius: var(--radius-md); border: 2px solid var(--bg-dark-blue); display: inline-block; margin-bottom: 16px;">
+      </div>
+
+      <div style="font-size: 16px; font-weight: 800; color: var(--color-primary); margin-bottom: 20px;"
+        id="modal-server-url">
+        Loading...
+      </div>
+
+      <button id="btn-close-entrance-qr" class="btn btn-outline btn-block" onclick="window.closeEntranceQrClick()">Close</button>
+    </div>
+  </div>
+
+
+  <!-- ===================================================================
+       MODAL 2: CAMERA BADGE SCANNER
+       =================================================================== -->
+  <div id="modal-scanner" class="modal-backdrop">
+    <div class="modal-content" style="text-align: center; max-width: 500px;">
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--bg-dark-blue); margin-bottom: 6px;">
+        📷 Scan Visitor Badge / Mobile QR
+      </h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Point the camera at the visitor's QR code on their phone screen.
+      </p>
+
+      <div id="qr-reader" style="width: 100%; border-radius: var(--radius-md); overflow: hidden;"></div>
+      <button id="btn-close-scanner" class="btn btn-outline btn-block" style="margin-top: 16px;" onclick="window.closeScannerClick()">Cancel Scanner</button>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       MODAL 3: TEAM WINNER FULL DETAILS MODAL
+       =================================================================== -->
+  <div id="modal-team-details" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 680px; padding: 24px;">
+      <div
+        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+        <h3
+          style="font-size: 18px; font-weight: 800; color: var(--bg-dark-blue); display: flex; align-items: center; gap: 8px;">
+          <span>🏆 Team Performance &amp; Member Details</span>
+        </h3>
+        <button id="btn-close-team-details"
+          style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted);">✕</button>
+      </div>
+
+      <div id="team-details-content">
+        <!-- Dynamically injected team details -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/admin.js?v=10"></script>
+</body>
+
+</html>

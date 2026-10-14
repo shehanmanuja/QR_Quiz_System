@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login | QR Quiz</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#101827;color:#f8fafc;font-family:Arial,sans-serif;padding:20px}
+    .card{width:min(100%,420px);padding:28px;border:1px solid #334155;border-radius:18px;background:#182235;box-shadow:0 20px 60px #0004}
+    h1{font-size:24px;margin:0 0 8px}.sub{color:#cbd5e1;margin:0 0 24px}label{display:block;margin:16px 0 7px;font-size:14px}
+    input{width:100%;padding:12px;border-radius:9px;border:1px solid #475569;background:#0f172a;color:white;font-size:16px}
+    button{width:100%;margin-top:22px;padding:13px;border:0;border-radius:9px;background:#38bdf8;color:#082f49;font-weight:bold;font-size:16px;cursor:pointer}
+    #msg{min-height:22px;color:#fca5a5;font-size:14px;margin-top:12px}
+  </style>
+</head><body><main class="card"><h1>Admin Dashboard</h1><p class="sub">Sign in to manage the Exhibition QR Quiz System.</p>
+<form id="login"><label for="username">Username</label><input id="username" name="username" autocomplete="username" required>
+<label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+<button type="submit">Sign in</button><div id="msg" role="alert"></div></form></main>
+<script>
+document.getElementById('login').addEventListener('submit', async (e) => {
+  e.preventDefault(); const msg=document.getElementById('msg'); msg.textContent='';
+  try { const r=await fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('username').value,password:document.getElementById('password').value})}); const d=await r.json();
+    if(!r.ok) throw new Error(d.message||'Login failed'); window.location.href=d.redirect||'/admin';
+  } catch(err) { msg.textContent=err.message||'Could not sign in. Try again.'; }
+});
+</script></body></html>
