@@ -1,0 +1,118 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What does the abbreviation 'LFP' stand for in the context of battery chemistry?",
+      "options": [
+        "Lithium Fluoride Polymer",
+        "Lithium Iron Phosphate",
+        "Lead Fuel Power",
+        "Low Frequency Phase"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 2,
+      "question": "Which prominent heavy metal is entirely absent from the cathode material of the SMILE-G3 series batteries?",
+      "options": [
+        "Nickel",
+        "Manganese",
+        "Cobalt",
+        "Iron"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 3,
+      "question": "What is the standard water and dust resistance IP protection rating for both the 4.5S and 9.3S battery models?",
+      "options": [
+        "IP20",
+        "IP54",
+        "IP65",
+        "IP67"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 4,
+      "question": "What type of installation method is specified as standard or optional for the SMILE-G3-BAT-4.5S model?",
+      "options": [
+        "Wall Mounted / Base Installation",
+        "Pole Mounted Only",
+        "Underground Pit Installation",
+        "Ceiling Suspended"
+      ],
+      "correct": 0
+    },
+    {
+      "id": 5,
+      "question": "What type of installation method is specified for the heavier SMILE-G3-BAT-9.3S model?",
+      "options": [
+        "Wall Hanging Only",
+        "Floor/Base Installation",
+        "Rooftop Installation",
+        "Portable Handheld"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 6,
+      "question": "What is the nominal voltage specified for both the SMILE-G3-BAT-4.5S and SMILE-G3-BAT-9.3S battery modules?",
+      "options": [
+        "12 V",
+        "48 V",
+        "96 V",
+        "400 V"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 7,
+      "question": "What is the Depth of Discharge (DoD) percentage supported by these battery models?",
+      "options": [
+        "80%",
+        "90%",
+        "95%",
+        "100%"
+      ],
+      "correct": 3
+    },
+    {
+      "id": 8,
+      "question": "What communication protocol is utilized by the Battery Management System (BMS) to interface with the inverter?",
+      "options": [
+        "Wi-Fi",
+        "CAN",
+        "Bluetooth",
+        "Ethernet"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 9,
+      "question": "What built-in safety mechanisms are listed in the data sheets for hazard mitigation?",
+      "options": [
+        "Water sprinkler and sand bucket",
+        "Aerosol, explosion-proof valve",
+        "High-pressure gas release valve",
+        "Manual circuit breaker switch"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 10,
+      "question": "What is the standard battery performance warranty duration offered for the SMILE-G3 series?",
+      "options": [
+        "3 Years",
+        "5 Years",
+        "10 Years",
+        "25 Years"
+      ],
+      "correct": 2
+    }
+  ],
+  "visitors": [],
+  "teams": [],
+  "settings": {},
+  "forming_group": null
+}
